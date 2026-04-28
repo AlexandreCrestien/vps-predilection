@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container section">
+    <h1 class="title">Détails des Communes</h1>
+
+    <div class="level">
+        <div class="level-left">
+            <div class="level-item">
+                <form method="get" class="field has-addons">
+                    <p class="control">
+                        <input class="input" type="text" name="search" placeholder="Chercher une ville..." value="{{ request.GET.search|default:'' }}">
+                    </p>
+                    <p class="control">
+                        <button type="submit" class="button is-link is-fullwidth">
+                            <span class="icon"><i class="fas fa-search"></i></span>
+                            <span>Filtrer</span>
+                        </button>
+                    </p>
+                    <input type="hidden" name="page" value="1">
+                    <input type="hidden" name="limit" value="{{ limit }}">
+                </form>
+            </div>
+        </div>
+
+        <div class="level-right">
+            <div class="level-item">
+                <form method="get" class="field has-addons">
+                    <p class="control">
+                        <span class="select">
+                            <select name="limit" onchange="this.form.submit()">
+                                {% for opt in limit_options %}
+                                    <option value="{{ opt }}" {% if limit == opt %}selected{% endif %}>Afficher {{ opt }}</option>
+                                {% endfor %}
+                            </select>
+                        </span>
+                    </p>
+                    {% if request.GET.search %}<input type="hidden" name="search" value="{{ request.GET.search }}">{% endif %}
+                    <input type="hidden" name="page" value="1">
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-content">
+            <div class="table-container">
+                <table class="table is-fullwidth is-striped is-hoverable">
+                    <thead>
+                        <tr>
+                            <th>Ville</th>
+                            <th>Année</th>
+                            <th>Code Insee</th>
+                            <th>% Gauche</th>
+                            <th>% Centre</th>
+                            <th>% Droite</th>
+                            <th>% Abstention</th>
+                            <th>Inscrits</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in detail_data %}
+                            <tr>
+                                <td><strong>{{ item.city }}</strong></td>
+                                <td>{{ item.years }}</td>
+                                <td><span class="tag is-light">{{ item.code_insee }}</span></td>
+                                <td class="has-text-danger">{{ item.pct_gauche }}%</td>
+                                <td class="has-text-warning">{{ item.pct_centre }}%</td>
+                                <td class="has-text-link">{{ item.pct_droite }}%</td>
+                                <td>{{ item.statistics.pct_abstention|default:"-" }}%</td>
+                                <td>{{ item.statistics.Inscrits|default:"-" }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="8" class="has-text-centered has-text-grey">
+                                    <br>Aucune commune ne correspond à votre recherche.<br><br>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <hr>
+
+            <div class="level">
+                <div class="level-left">
+                    <nav class="pagination is-centered" role="navigation" aria-label="pagination">
+                        {% if has_prev %}
+                            <a href="?page={{ prev_page }}&limit={{ limit }}&search={{ request.GET.search|default:'' }}" class="pagination-previous">Précédent</a>
+                        {% else %}
+                            <a class="pagination-previous" disabled>Précédent</a>
+                        {% endif %}
+
+                        {% if has_next %}
+                            <a href="?page={{ next_page }}&limit={{ limit }}&search={{ request.GET.search|default:'' }}" class="pagination-next">Suivant</a>
+                        {% else %}
+                            <a class="pagination-next" disabled>Suivant</a>
+                        {% endif %}
+
+                        <ul class="pagination-list">
+                            <li><span class="pagination-link is-current">Page {{ current_page }} / {{ total_pages }}</span></li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <div class="level-right">
+                    <form method="get" class="field has-addons">
+                        <p class="control">
+                            <input class="input" type="number" name="page" min="1" max="{{ total_pages }}" value="{{ current_page }}" style="width: 80px;">
+                        </p>
+                        <p class="control">
+                            <button type="submit" class="button is-light">Aller à</button>
+                        </p>
+                        <input type="hidden" name="limit" value="{{ limit }}">
+                        {% if request.GET.search %}<input type="hidden" name="search" value="{{ request.GET.search }}">{% endif %}
+                    </form>
+                </div>
+            </div>
+            
+            <p class="has-text-right has-text-grey is-size-7">Total : {{ total_items }} communes</p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

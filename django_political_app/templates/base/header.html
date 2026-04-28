@@ -1,0 +1,67 @@
+<nav class="navbar is-link is-fullwidth" role="navigation" aria-label="main navigation">
+  <div class="container">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="{% url 'home' %}">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none" style="margin-right: 8px;">
+          <circle cx="16" cy="16" r="15" stroke="white" stroke-width="1.5"/>
+          <path d="M8 22 L16 8 L24 22" stroke="white" stroke-width="2" stroke-linejoin="round" fill="none"/>
+          <line x1="10" y1="18" x2="22" y2="18" stroke="#ff3860" stroke-width="1.5"/>
+        </svg>
+        <span style="font-weight: bold; font-size: 1.2rem;">
+          Prédi<span style="color: #ff3860;">'</span>lection
+        </span>
+      </a>
+
+      <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navMenuMain">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </a>
+    </div>
+
+    <div id="navMenuMain" class="navbar-menu">
+      <div class="navbar-start">
+        {% if user.is_authenticated %}
+          <a href="{% url 'predictions' %}" class="navbar-item {% if request.resolver_match.url_name == 'predictions' %}is-active has-text-weight-bold{% endif %}">Prédictions</a>
+          <a href="{% url 'map' %}" class="navbar-item {% if request.resolver_match.url_name == 'map' %}is-active has-text-weight-bold{% endif %}">Carte</a>
+          <a href="{% url 'detail' %}" class="navbar-item {% if request.resolver_match.url_name == 'detail' %}is-active has-text-weight-bold{% endif %}">Détail</a>
+        {% endif %}
+        <a href="{% url 'home' %}" class="navbar-item {% if request.resolver_match.url_name == 'home' %}is-active has-text-weight-bold{% endif %}">Accueil</a>
+      </div>
+
+      <div class="navbar-end">
+        <div class="navbar-item">
+          <div class="buttons">
+            {% if user.is_authenticated %}
+              <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="button is-danger is-light">Déconnexion</button>
+              </form>
+            {% else %}
+              <a href="{% url 'login' %}" class="button is-link is-inverted is-outlined">
+                Connexion
+              </a>
+              <a href="{% url 'signup' %}" class="button is-white">
+                <strong>S'inscrire</strong>
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+    $navbarBurgers.forEach( el => {
+      el.addEventListener('click', () => {
+        const target = el.dataset.target;
+        const $target = document.getElementById(target);
+        el.classList.toggle('is-active');
+        $target.classList.toggle('is-active');
+      });
+    });
+  });
+</script>

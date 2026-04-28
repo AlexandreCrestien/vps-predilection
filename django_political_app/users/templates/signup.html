@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<section class="section">
+  <div class="container">
+    <div class="card"> <div class="card-content">
+        <div class="content">
+          
+          <div>
+            <h2 class="title is-4 has-text-centered mb-2">Créer un compte</h2>
+            <p class="subtitle is-6 has-text-centered has-text-grey mb-5">
+              Rejoignez-nous pour accéder aux <i>données exclusives</i>.
+            </p>
+
+            {% if form.non_field_errors %}
+            <div class="notification is-danger is-light">
+              {{ form.non_field_errors|join:", " }}
+            </div>
+            {% endif %}
+
+            <form method="post" novalidate>
+              {% csrf_token %}
+              
+              {% for field in form %}
+              <div class="field mb-4">
+                <label class="label is-small">{{ field.label }}</label>
+                <div class="control has-icons-left">
+                  <input 
+                    class="input {% if field.errors %}is-danger{% endif %}" 
+                    type="{{ field.field.widget.input_type|default:'text' }}" 
+                    name="{{ field.name }}" 
+                    id="{{ field.id_for_label }}"
+                    placeholder="{{ field.label }}"
+                  >
+                  <span class="icon is-small is-left">
+                    {% if "pass" in field.name %}
+                      <i class="fas fa-lock"></i>
+                    {% elif "mail" in field.name %}
+                      <i class="fas fa-envelope"></i>
+                    {% else %}
+                      <i class="fas fa-user"></i>
+                    {% endif %}
+                  </span>
+                </div>
+                
+                {% if field.errors %}
+                  <p class="help is-danger">{{ field.errors|striptags }}</p>
+                {% endif %}
+              </div>
+              {% endfor %}
+
+              <div class="field mt-5">
+                <button type="submit" class="button is-link is-fullwidth has-text-weight-bold">
+                  S'inscrire
+                </button>
+              </div>
+
+              <div class="has-text-centered mt-4">
+                <p class="is-size-7">
+                  Déjà un compte ? 
+                  <a href="{% url 'login' %}" class="has-text-link has-text-weight-bold">Connectez-vous</a>
+                </p>
+              </div>
+            </form>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}

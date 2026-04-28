@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<section class="section">
+  <div class="container">
+    <div class="card">
+
+      <div class="card-content">
+        <div class="content">
+          
+          <div>
+          <h2 class="title is-4 has-text-centered mb-2">Connectez-vous à votre compte</h2>
+          <p class="subtitle is-6 has-text-centered has-text-grey mb-5">
+            Accédez aux résultats électoraux et explorez les <i>données locales</i>.
+          </p>
+
+          {% if form.non_field_errors %}
+          <div class="notification is-danger is-light">
+            {{ form.non_field_errors }}
+          </div>
+          {% endif %}
+
+          <form method="post" novalidate>
+            {% csrf_token %}
+            
+            {% for field in form %}
+            <div class="field mb-4">
+              <div class="control has-icons-left">
+                <input 
+                  class="input {% if field.errors %}is-danger{% endif %}" 
+                  type="{{ field.field.widget.input_type }}" 
+                  name="{{ field.name }}" 
+                  id="{{ field.id_for_label }}"
+                  placeholder="{{ field.label }}"
+                >
+                <span class="icon is-small is-left">
+                  {% if "pass" in field.name %}
+                    <i class="fas fa-lock"></i>
+                  {% else %}
+                    <i class="fas fa-user"></i>
+                  {% endif %}
+                </span>
+              </div>
+              
+              {% if "pass" in field.name %}
+              <div class="is-flex is-justify-content-flex-end">
+                <a href="#" class="is-size-7 mt-1">Mot de passe oublié ?</a>
+              </div>
+              {% endif %}
+
+              {% if field.errors %}
+                <p class="help is-danger">{{ field.errors|striptags }}</p>
+              {% endif %}
+            </div>
+            {% endfor %}
+
+            <div class="field mt-5">
+              <button type="submit" class="button is-link is-fullwidth has-text-weight-bold">
+                Se Connecter
+              </button>
+            </div>
+
+            <div class="has-text-centered mt-4">
+              <p class="is-size-7">
+                Pas encore de compte ? 
+                <a href="{% url 'signup' %}" class="has-text-link has-text-weight-bold">Inscrivez-vous</a>
+              </p>
+            </div>
+          </form>
+        </div>
+
+        </div>
+      </div>
+
+    </div>
+
+
+  </div>
+</section>
+
+<style>
+
+.is-divider {
+    display: block;
+    position: relative;
+    border-top: 1px solid #dbdbdb;
+    height: 1px;
+    margin: 2rem 0;
+    text-align: center;
+}
+
+</style>
+
+{% endblock %}

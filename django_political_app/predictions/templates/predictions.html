@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
+<style>
+    /* Style personnalisé pour l'intégration Tom Select dans Bulma */
+    .ts-control { 
+        border-radius: 8px !important; 
+        padding: 12px !important; 
+        font-size: 1.1rem !important;
+        border: 1px solid #dbdbdb !important;
+    }
+    .ts-dropdown { border-radius: 8px !important; margin-top: 5px !important; }
+    .prediction-card { border-radius: 12px; height: 100%; border: 1px solid #f0f0f0; }
+
+    /* Par défaut (Centre/Autre) */
+    .prediction-card-bg-centre {
+        background: linear-gradient(135deg, #ffdd57, #f39c12);
+    }
+
+    .prediction-card-bg-gauche {
+        background: linear-gradient(135deg, #ed4444, #f07070);
+    }
+
+    .prediction-card-bg-droite {
+        background: linear-gradient(135deg, #4461f2, #7085f5);
+    }
+
+    /* On garde les styles communs ici */
+    .card.mb-5 {
+        border-radius: 12px;
+        color: white;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+</style>
+
+<section class="section has-background-light" style="min-height: 100vh;">
+    <div class="container">
+        
+        <div class="columns is-centered">
+            <div class="column is-7">
+                <div class="box p-6 has-text-centered" style="border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+                    <h1 class="title is-3">🔮 Prédiction pour 2027</h1>
+                    <p class="subtitle is-6 mt-2">Sélectionnez une commune pour voir les projections politiques</p>
+                    
+                    <form method="GET">
+                        <div class="field mt-5">
+                            <label class="label has-text-left">Nom de la commune ou code INSEE</label>
+                            <div class="control">
+                                <select id="commune-select" name="code_insee" placeholder="Ex: Lille, Marseille, 59000..." autocomplete="off">
+                                    {% if search_query %}
+                                        <option value="{{ search_query }}" selected>{{ search_query }}</option>
+                                    {% endif %}
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="button is-link is-fullwidth is-large mt-5" style="font-weight: 600; border-radius: 8px;">
+                            Générer la prédiction
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {% if error %}
+            <div class="notification is-warning is-light has-text-centered mt-4">
+                <button class="delete"></button>
+                {{ error }}
+            </div>
+        {% endif %}
+
+        {% if prediction_data %}
+        <div class="mt-6">
+            <h2 class="title is-5 mb-5"><span class="icon has-text-link mr-2">📊</span> Analyse prévisionnelle: <strong>{{ prediction_data.city }}</strong></h2>
+
+            <div class="columns">
+                <div class="column is-5">
+                    
+                    <div class="card mb-5 prediction-card-bg-{{ prediction_data.prediction_2027 }}">
+                        <div class="card-content p-5">
+                            <p class="is-size-7 is-uppercase has-text-weight-bold" style="letter-spacing: 1px;">Camp en tête :</p>
+                            <div class="is-flex is-align-items-center mt-4">
+                                <span class="is-size-1 mr-4">🗳️</span>
+                                <div>
+                                    <p class="title is-2 has-text-white mb-1">{{ prediction_data.prediction_2027|capfirst }}</p>
+                                    <p class="subtitle is-6 has-text-white" style="opacity: 0.9;">Fiabilité du modèle : {{ prediction_data.confiance_percent }}%</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <header class="card-header is-shadowless">
+                            <p class="card-header-title">
+                                <span class="icon has-text-link mr-2">🔄</span> Facteurs déterminants
+                            </p>
+                        </header>
+                        <div class="card-content">
+                            {% for feature, importance in prediction_data.top_features.items %}
+                            <div class="mb-5">
+                                <div class="is-flex is-justify-content-between mb-2">
+                                    <span class="is-size-7 has-text-weight-semibold">{{ feature }}</span>
+                                </div>
+                                <progress class="progress is-link is-small" value="{{ importance }}" max="1"></progress>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="column is-7">
+                    <div class="card prediction-card">
+                        <header class="card-header is-shadowless">
+                            <p class="card-header-title">
+                                <span class="icon has-text-link mr-2">📉</span> Intentions de vote projetées
+                            </p>
+                        </header>
+                        <div class="card-content">
+                            <div class="columns is-multiline">
+                                {% for camp, score in prediction_data.scores.items %}
+                                <div class="column is-6">
+                                    <div class="box has-text-centered is-shadowless" style="border: 1px solid #f0f0f0; border-radius: 10px;">
+                                        <p class="heading has-text-grey">{{ camp|capfirst }}</p>
+                                        <p class="title is-3">{{ score }}%</p>
+                                        <progress class="progress is-small 
+                                            {% if camp == 'gauche' %}is-danger{% elif camp == 'droite' %}is-link{% else %}is-warning{% endif %}" 
+                                            value="{{ score }}" max="100"></progress>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="notification is-light mt-4 is-size-7">
+                                <strong>Note :</strong> Ces données sont des projections basées sur les évolutions sociodémographiques (CSP, âge, revenus) et ne constituent pas un sondage.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Initialisation de Tom Select pour l'autocomplete
+    new TomSelect("#commune-select", {
+        valueField: 'id',
+        labelField: 'text',
+        searchField: 'text',
+        // On autorise la recherche dès le 1er caractère
+        shouldLoad: function(query) { return query.length >= 1; },
+        load: function(query, callback) {
+            // URL vers ta vue Django commune_autocomplete
+            var url = '{% url "commune-search" %}?q=' + encodeURIComponent(query);
+            fetch(url)
+                .then(response => response.json())
+                .then(json => {
+                    callback(json.results);
+                }).catch(() => {
+                    callback();
+                });
+        },
+        render: {
+            option: function(item, escape) {
+                return '<div class="py-2 px-3"><span>' + escape(item.text) + '</span></div>';
+            },
+            item: function(item, escape) {
+                return '<div>' + escape(item.text) + '</div>';
+            }
+        },
+        placeholder: 'Chercher par ville ou code postal...',
+        maxItems: 1,
+    });
+});
+</script>
+{% endblock %}

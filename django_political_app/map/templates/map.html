@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<section class="section">
+    <div class="container">
+        <h1 class="title">Explorateur de départements : {{ dept_nom }}</h1>
+        
+        <div class="fixed-grid has-8-cols">
+            <div class="grid">
+                <div class="cell is-col-span-2">
+                    <div class="mt-2">
+                        <strong style="color: blue;">Sélectionnez une année:</strong>
+                    </div>
+                </div>
+                <div class="cell is-col-span-1">
+                    <a class="button year-btn {% if current_year == '2012' %}is-link is-selected has-text-weight-bold{% endif %}" href="?department={{ current_dept }}&year=2012">2012</a>
+                </div>
+                <div class="cell is-col-span-1">
+                    <a class="button year-btn {% if current_year == '2017' %}is-link is-selected has-text-weight-bold{% endif %}" href="?department={{ current_dept }}&year=2017">2017</a>
+                </div>
+                <div class="cell is-col-span-1">
+                    <a class="button year-btn {% if current_year == '2022' %}is-link is-selected has-text-weight-bold{% endif %}" href="?department={{ current_dept }}&year=2022">2022</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="fixed-grid has-4-cols">
+            <div class="grid">
+                <div class="cell is-col-span-3" style="position: relative;">
+                    <div id="map-skeleton" class="box" style="display: none; position: absolute; width: 100%; height: 600px; z-index: 10; background: white;">
+                        <div class="skeleton-block" style="width: 100%; height: 100%; border-radius: 6px; background-color: #eee;"></div>
+                        <p class="has-text-centered mt-2 has-text-grey">Chargement de la carte...</p>
+                    </div>
+
+                    <div id="map-container" class="box p-0" style="height: 600px; overflow: hidden;">
+                        {{ map|safe }}
+                    </div>
+                </div>
+
+                <div class="cell">
+                    <div class="card">
+                        <header class="card-header">
+                            <p class="card-header-title">Recherche Locale</p>
+                        </header>
+                        <div class="card-content">
+                            <form method="get" action="" id="map-form">
+                                <input type="hidden" name="year" value="{{ current_year }}">
+                                
+                                <div class="field">
+                                    <label class="label">Choisir un département</label>
+                                    
+                                    <div class="control is-expanded">
+                                        <div class="select is-fullwidth">
+                                            <select name="department" id="dept-select" onchange="showSkeletonAndSubmit()">
+                                                {% for dept in departments %}
+                                                    <option value="{{ dept.code }}" {% if dept.code == current_dept %}selected{% endif %}>
+                                                        {{ dept.code }} - {{ dept.nom }}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="field mt-4">
+                                    <div class="control">
+                                        <button type="submit" onclick="showSkeletonAndSubmit()" class="button is-link is-fullwidth">
+                                            Mettre à jour la carte
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<script>
+    function showSkeletonAndSubmit() {
+        // Affiche le skeleton
+        document.getElementById('map-skeleton').style.display = 'block';
+        // Opacité réduite sur la carte actuelle pour l'effet visuel
+        document.getElementById('map-container').style.opacity = '0.3';
+        // Soumission du formulaire
+        document.getElementById('map-form').submit();
+    }
+
+    // Gestion du clic sur les boutons d'années
+    document.querySelectorAll('.year-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            document.getElementById('map-skeleton').style.display = 'block';
+            document.getElementById('map-container').style.opacity = '0.3';
+        });
+    });
+
+</script>
+
+{% endblock %}
