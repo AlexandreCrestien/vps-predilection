@@ -1,4 +1,4 @@
-name: Build and Push Docker Images
+name: CI/CD - Lint + Build + Push
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-v1.0
 
     permissions:
       contents: read
@@ -14,28 +14,42 @@ jobs:
 
     steps:
 
-      # 1. Pegar o código
+      # 1. Checkout do código
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Login no GitHub Container Registry
+      # 2. Setup Python (para lint)
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      # 3. Instalar lint
+      - name: Install flake8
+        run: pip install flake8
+
+      # 4. Rodar lint
+      - name: Run lint
+        run: flake8 .
+
+      # 5. Login no GitHub Container Registry
       - name: Log in to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      # 3. Build + push FASTAPI
+      # 6. Build + push FASTAPI
       - name: Build and push FastAPI
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/fastapi-app:latest ./api
-          docker push ghcr.io/${{ github.repository_owner }}/fastapi-app:latest
+          docker build -t ghcr.io/${{ github.repository_owner }}/fastapi-app:v1.0 ./api
+          docker push ghcr.io/${{ github.repository_owner }}/fastapi-app:v1.0
 
-      # 4. Build + push DJANGO
+      # 7. Build + push DJANGO
       - name: Build and push Django
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/django-app:latest ./django_political_app
-          docker push ghcr.io/${{ github.repository_owner }}/django-app:latest
+          docker build -t ghcr.io/${{ github.repository_owner }}/django-app:v1.0 ./django_political_app
+          docker push ghcr.io/${{ github.repository_owner }}/django-app:v1.0
 
-      # 5. Build + push INGEST
+      # 8. Build + push INGEST
       - name: Build and push Ingest
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/ingest-app:latest -f scripts/Dockerfile .
-          docker push ghcr.io/${{ github.repository_owner }}/ingest-app:latest
+          docker build -t ghcr.io/${{ github.repository_owner }}/ingest-app:v1.0 -f scripts/Dockerfile .
+          docker push ghcr.io/${{ github.repository_owner }}/ingest-app:v1.0
