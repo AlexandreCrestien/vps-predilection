@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-v1.0
+    runs-on: ubuntu-latest
 
     permissions:
       contents: read
@@ -14,25 +14,25 @@ jobs:
 
     steps:
 
-      # 1. Checkout do código
+      # 1. Code checkout
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Setup Python (para lint)
+      # 2. Setup Python (for lint)
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.12"
 
-      # 3. Instalar lint
+      # 3. Install lint
       - name: Install flake8
         run: pip install flake8
 
-      # 4. Rodar lint
+      # 4. Run lint
       - name: Run lint
         run: flake8 .
 
-      # 5. Login no GitHub Container Registry
+      # 5. Login GitHub Container Registry
       - name: Log in to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
