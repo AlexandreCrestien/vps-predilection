@@ -39,17 +39,17 @@ jobs:
       # 6. Build + push FASTAPI
       - name: Build and push FastAPI
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/fastapi-app:v1.0 ./api
-          docker push ghcr.io/${{ github.repository_owner }}/fastapi-app:v1.0
+          docker build -t ghcr.io/edilenesilva/fastapi-app:v1.0 ./api
+          docker push ghcr.io/edilenesilva/fastapi-app:v1.0
 
       # 7. Build + push DJANGO
       - name: Build and push Django
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/django-app:v1.0 ./django_political_app
-          docker push ghcr.io/${{ github.repository_owner }}/django-app:v1.0
+          docker build -t ghcr.io/edilenesilva/django-app:v1.0 ./django_political_app
+          docker push ghcr.io/edilenesilva/django-app:v1.0
 
       # 8. Build + push INGEST
       - name: Build and push Ingest
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/ingest-app:v1.0 -f scripts/Dockerfile .
-          docker push ghcr.io/${{ github.repository_owner }}/ingest-app:v1.0
+          docker build -t ghcr.io/edilenesilva/ingest-app:v1.0 -f scripts/Dockerfile .
+          docker push ghcr.io/edilenesilva/ingest-app:v1.0
