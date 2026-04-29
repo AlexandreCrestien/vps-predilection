@@ -1,0 +1,41 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches: [ "develop" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+
+      # 1. Pegar o código
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Login no GitHub Container Registry
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      # 3. Build + push FASTAPI
+      - name: Build and push FastAPI
+        run: |
+          docker build -t ghcr.io/${{ github.repository_owner }}/fastapi-app:latest ./api
+          docker push ghcr.io/${{ github.repository_owner }}/fastapi-app:latest
+
+      # 4. Build + push DJANGO
+      - name: Build and push Django
+        run: |
+          docker build -t ghcr.io/${{ github.repository_owner }}/django-app:latest ./django_political_app
+          docker push ghcr.io/${{ github.repository_owner }}/django-app:latest
+
+      # 5. Build + push INGEST
+      - name: Build and push Ingest
+        run: |
+          docker build -t ghcr.io/${{ github.repository_owner }}/ingest-app:latest -f scripts/Dockerfile .
+          docker push ghcr.io/${{ github.repository_owner }}/ingest-app:latest
