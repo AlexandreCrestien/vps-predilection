@@ -44,6 +44,7 @@ def commune_light_data():
 def prediction_data():
     return {
         "code_insee": "59009",
+        "city": "Lille",
         "prediction_2027": "Gauche",
         "confiance_percent": 85.0,
         "scores": {"Gauche": 85.0, "Centre": 10.0, "Droite": 5.0},
@@ -51,7 +52,6 @@ def prediction_data():
         "details_predictions": {"Ouvriers": 35.0},
         "status": "success",
     }
-
 
 # ============================================================
 # ENDPOINT ROOT
