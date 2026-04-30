@@ -8,7 +8,10 @@ exclude =
     ml,
     scripts,
     .git,
-    migrations
+    migrations,
+    docs,
+    eda,
+    maquette,
 
 ignore =
     E501
