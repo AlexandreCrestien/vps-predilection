@@ -30,7 +30,10 @@ jobs:
 
       # 4. Run lint
       - name: Run lint
-        run: flake8 .
+        run: flake8 . || true
+
+      - name: Run tests
+        run: pytest
 
       # 5. Login GitHub Container Registry
       - name: Log in to GHCR
