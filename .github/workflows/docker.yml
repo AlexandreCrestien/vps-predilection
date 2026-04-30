@@ -32,6 +32,11 @@ jobs:
       - name: Run lint
         run: flake8 . || true
 
+      # 5. Install dependencies
+      - name: Install dependencies
+        run: pip install -r api/requirements-dev.txt
+
+      # 5. tests 
       - name: Run tests
         run: pytest
 
