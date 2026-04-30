@@ -30,7 +30,7 @@ jobs:
 
       # 4. Run lint
       - name: Run lint
-        run: flake8 . || true
+        run: flake8 .
 
       # 5. Login GitHub Container Registry
       - name: Log in to GHCR
