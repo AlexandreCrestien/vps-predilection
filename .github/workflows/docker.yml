@@ -40,6 +40,12 @@ jobs:
             pip install -r api/requirements-dev.txt
             pip install -r django_political_app/requirements-dev.txt
 
+      #
+      - name: Set environment variables
+        run: |
+            echo "DJANGO_SETTINGS_MODULE=django_political_app.settings" >> $GITHUB_ENV
+            echo "SECRET_KEY=test-secret-key" >> $GITHUB_ENV      
+
       # 5. tests 
       - name: Run tests
         run: pytest
