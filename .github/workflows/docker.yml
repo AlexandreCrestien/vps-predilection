@@ -34,7 +34,8 @@ jobs:
 
       # 5. Install dependencies
       - name: Install dependencies
-        run: pip install --upgrade pip 
+        run: |
+            pip install --upgrade pip 
             pip install -r api/requirements-dev.txt
             pip install -r django_political_app/requirements-dev.txt
 
