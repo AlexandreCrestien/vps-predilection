@@ -1,8 +1,7 @@
-from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.views.generic.base import View
 
-from django.views import View
+# from django.views import View
 from django.shortcuts import render, redirect
 from .forms import SignupForm, LoginForm
 from django.contrib import messages
@@ -65,7 +64,7 @@ class CustomLoginView(LoginView):
             str: URL de redirection vers la page d'accueil.
         """
         return "/home"
-    
+
     def form_valid(self, form):
         """ Affiche un message de succès ou d'erreur en fonction du résultat de la validation du formulaire de connexion.
 
@@ -81,7 +80,7 @@ class CustomLoginView(LoginView):
         else:
             messages.error(self.request, "Échec de la connexion. Veuillez vérifier vos identifiants.")
         return is_valid
-    
+
     def dispatch(self, request, *args, **kwargs):
         """Redirige les utilisateurs déjà authentifiés vers la page d'accueil.
 

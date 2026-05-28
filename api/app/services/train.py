@@ -26,7 +26,7 @@ class TrainService:
 
             # 2. Nettoyage
             df_clean = df[
-                (df['Population_active'] > 0) & 
+                (df['Population_active'] > 0) &
                 (df['Population avec enfants'] > 0)
             ].copy()
 
@@ -53,7 +53,7 @@ class TrainService:
             joblib.dump(model, model_path)
 
             # --- GÉNÉRATION DU JSON (METADATA) ---
-            
+
             # Calcul des importances
             importances = model.feature_importances_
             feat_imp = {name: float(imp) for name, imp in zip(feature_names, importances)}
@@ -71,7 +71,7 @@ class TrainService:
             with open(meta_path, "w", encoding="utf-8") as f:
                 json.dump(metadata, f, indent=4, ensure_ascii=False)
 
-            print(f"--- TRAINING SUCCESS ---")
+            print("--- TRAINING SUCCESS ---")
             print(f"Modèle sauvegardé : {model_path}")
             print(f"Métadonnées sauvegardées : {meta_path}")
             print(f"Précision : {metadata['accuracy']:.4f}")
