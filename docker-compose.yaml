@@ -12,16 +12,13 @@ services:
       - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./certs:/certs:ro
-      - ./dynamic:/dynamic:ro
+      - ./letsencrypt:/letsencrypt
     command:
       - "--entrypoints.web.address=:80"
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
       - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
       - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
       - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.websecure.http.tls=true"
-      - "--providers.file.filename=/dynamic/tls.yaml"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.network=proxy"
@@ -29,12 +26,17 @@ services:
       - "--api.insecure=false"
       - "--log.level=INFO"
       - "--accesslog=true"
+      - "--certificatesresolvers.le.acme.email=alexandre.crestien@gmail.com"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=Host(`dashboard.docker.localhost`)"
+      - "traefik.http.routers.dashboard.rule=Host(`dashboard.predilection.duckdns.org`)"
       - "traefik.http.routers.dashboard.entrypoints=websecure"
       - "traefik.http.routers.dashboard.service=api@internal"
       - "traefik.http.routers.dashboard.tls=true"
+      - "traefik.http.routers.dashboard.tls.certresolver=le"
       - "traefik.http.middlewares.dashboard-auth.basicauth.users=admin:$$apr1$$vxixy1MF$$lsepsdns2ijhZdgOEpwvK1"
       - "traefik.http.routers.dashboard.middlewares=dashboard-auth@docker"
 
@@ -56,22 +58,21 @@ services:
       retries: 5
 
   ingest:
-    build:
-      context: .
-      dockerfile: scripts/Dockerfile
-    networks:
-      - proxy
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      DATABASE_URL: ${DATABASE_URL}
-    restart: "no"
+      image: ghcr.io/alexandrecrestien/ingest-app:v1.0
+      networks:
+        - proxy
+      depends_on:
+        postgres:
+          condition: service_healthy
+      environment:
+        DATABASE_URL: ${DATABASE_URL}
+      volumes:
+        - ./.env:/app/api/.env:ro
+        - ./data:/app/data:ro
+      restart: "no"
 
   fastapi:
-    build:
-      context: ./api
-      dockerfile: Dockerfile
+    image: ghcr.io/alexandrecrestien/fastapi-app:v1.0
     networks:
       - proxy
     depends_on:
@@ -81,15 +82,14 @@ services:
       DATABASE_URL: ${DATABASE_URL}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.fastapi.rule=Host(`api.docker.localhost`)"
+      - "traefik.http.routers.fastapi.rule=Host(`api.predilection.duckdns.org`)"
       - "traefik.http.routers.fastapi.entrypoints=websecure"
       - "traefik.http.routers.fastapi.tls=true"
+      - "traefik.http.routers.fastapi.tls.certresolver=le"
       - "traefik.http.services.fastapi.loadbalancer.server.port=8080"
 
   django:
-    build:
-      context: ./django_political_app
-      dockerfile: Dockerfile
+    image: ghcr.io/alexandrecrestien/django-app:v1.0
     networks:
       - proxy
     depends_on:
@@ -101,9 +101,10 @@ services:
       BASE_URL: https://geo.api.gouv.fr
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.django.rule=Host(`app.docker.localhost`)"
+      - "traefik.http.routers.django.rule=Host(`predilection.duckdns.org`)"
       - "traefik.http.routers.django.entrypoints=websecure"
       - "traefik.http.routers.django.tls=true"
+      - "traefik.http.routers.django.tls.certresolver=le"
       - "traefik.http.services.django.loadbalancer.server.port=8000"
 
 networks:
