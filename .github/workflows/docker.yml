@@ -1,19 +1,14 @@
 name: CI/CD - Lint + Build + Push
-
 on:
   push:
     branches: [ "develop" ]
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
     permissions:
       contents: read
       packages: write
-
     steps:
-
       # 1. Code checkout
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -35,18 +30,17 @@ jobs:
       # 5. Install dependencies
       - name: Install dependencies
         run: |
-            pip install --upgrade pip
-            pip install pytest-django httpx
-            pip install -r api/requirements-dev.txt
-            pip install -r django_political_app/requirements-dev.txt
+          pip install --upgrade pip
+          pip install pytest-django httpx
+          pip install -r api/requirements-dev.txt
+          pip install -r django_political_app/requirements-dev.txt
 
-      #
       - name: Set environment variables
         run: |
-            echo "DJANGO_SETTINGS_MODULE=django_political_app.settings" >> $GITHUB_ENV
-            echo "SECRET_KEY=test-secret-key" >> $GITHUB_ENV      
+          echo "DJANGO_SETTINGS_MODULE=django_political_app.settings" >> $GITHUB_ENV
+          echo "SECRET_KEY=test-secret-key" >> $GITHUB_ENV
 
-      # 5. tests 
+      # 5. tests
       - name: Run tests
         run: pytest
 
@@ -57,17 +51,17 @@ jobs:
       # 6. Build + push FASTAPI
       - name: Build and push FastAPI
         run: |
-          docker build -t ghcr.io/edilenesilva/fastapi-app:v1.0 ./api
-          docker push ghcr.io/edilenesilva/fastapi-app:v1.0
+          docker build -t ghcr.io/alexandrecrestien/fastapi-app:v1.0 ./api
+          docker push ghcr.io/alexandrecrestien/fastapi-app:v1.0
 
       # 7. Build + push DJANGO
       - name: Build and push Django
         run: |
-          docker build -t ghcr.io/edilenesilva/django-app:v1.0 ./django_political_app
-          docker push ghcr.io/edilenesilva/django-app:v1.0
+          docker build -t ghcr.io/alexandrecrestien/django-app:v1.0 ./django_political_app
+          docker push ghcr.io/alexandrecrestien/django-app:v1.0
 
       # 8. Build + push INGEST
       - name: Build and push Ingest
         run: |
-          docker build -t ghcr.io/edilenesilva/ingest-app:v1.0 -f scripts/Dockerfile .
-          docker push ghcr.io/edilenesilva/ingest-app:v1.0
+          docker build -t ghcr.io/alexandrecrestien/ingest-app:v1.0 -f scripts/Dockerfile .
+          docker push ghcr.io/alexandrecrestien/ingest-app:v1.0
