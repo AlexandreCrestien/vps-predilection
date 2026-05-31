@@ -40,27 +40,27 @@ jobs:
           echo "DJANGO_SETTINGS_MODULE=django_political_app.settings" >> $GITHUB_ENV
           echo "SECRET_KEY=test-secret-key" >> $GITHUB_ENV
 
-      # 5. tests
+      # 6. Tests
       - name: Run tests
         run: pytest
 
-      # 5. Login GitHub Container Registry
+      # 7. Login GitHub Container Registry
       - name: Log in to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      # 6. Build + push FASTAPI
+      # 8. Build + push FASTAPI
       - name: Build and push FastAPI
         run: |
           docker build -t ghcr.io/alexandrecrestien/fastapi-app:v1.0 ./api
           docker push ghcr.io/alexandrecrestien/fastapi-app:v1.0
 
-      # 7. Build + push DJANGO
+      # 9. Build + push DJANGO
       - name: Build and push Django
         run: |
           docker build -t ghcr.io/alexandrecrestien/django-app:v1.0 ./django_political_app
           docker push ghcr.io/alexandrecrestien/django-app:v1.0
 
-      # 8. Build + push INGEST
+      # 10. Build + push INGEST
       - name: Build and push Ingest
         run: |
           docker build -t ghcr.io/alexandrecrestien/ingest-app:v1.0 -f scripts/Dockerfile .
