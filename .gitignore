@@ -221,4 +221,3 @@ api/saved_models/*.joblib
 
 # haevy data
 data/*.sql
-data/*.csv
