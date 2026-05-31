@@ -105,7 +105,6 @@ jobs:
           context: .
           file: ./scripts/Dockerfile
           push: true
-          no-cache: true
           tags: ${{ steps.meta-ingest.outputs.tags }}
           labels: ${{ steps.meta-ingest.outputs.labels }}
 
