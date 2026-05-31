@@ -67,7 +67,6 @@ services:
       DATABASE_URL: ${DATABASE_URL}
     volumes:
       - ./.env:/app/api/.env:ro
-      - ./data:/app/data:ro
     restart: "no"
 
   fastapi:
