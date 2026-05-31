@@ -57,7 +57,7 @@ services:
       retries: 5
 
   ingest:
-    image: ghcr.io/alexandrecrestien/ingest-app:v1.0
+    image: ghcr.io/alexandrecrestien/ingest-app:develop
     networks:
       - proxy
     depends_on:
@@ -70,7 +70,7 @@ services:
     restart: "no"
 
   fastapi:
-    image: ghcr.io/alexandrecrestien/fastapi-app:v1.0
+    image: ghcr.io/alexandrecrestien/fastapi-app:develop
     networks:
       - proxy
     depends_on:
@@ -87,7 +87,7 @@ services:
       - "traefik.http.services.fastapi.loadbalancer.server.port=8080"
 
   django:
-    image: ghcr.io/alexandrecrestien/django-app:v1.0
+    image: ghcr.io/alexandrecrestien/django-app:develop
     networks:
       - proxy
     depends_on:
