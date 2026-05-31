@@ -2,6 +2,8 @@ name: CI/CD - Lint + Build + Push + Deploy
 on:
   push:
     branches: [ "develop" ]
+  release:
+    types: [published]
 
 env:
   REGISTRY: ghcr.io
@@ -139,6 +141,7 @@ jobs:
             SECRET_KEY=${{ secrets.SECRET_KEY }}
             EOF
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            sed -i "s|:develop|:${{ github.ref_name }}|g" docker-compose.prod.yaml
             docker compose -f docker-compose.prod.yaml pull
             docker compose -f docker-compose.prod.yaml up -d
             docker image prune -f
