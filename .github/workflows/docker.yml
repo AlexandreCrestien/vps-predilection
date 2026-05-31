@@ -112,6 +112,7 @@ jobs:
 
       # 11. Copy docker-compose.prod to VPS
       - name: Copy docker-compose to VPS
+        if: github.event_name == 'release'
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -123,6 +124,7 @@ jobs:
 
       # 12. Deploy on VPS
       - name: Deploy on VPS
+        if: github.event_name == 'release'
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
