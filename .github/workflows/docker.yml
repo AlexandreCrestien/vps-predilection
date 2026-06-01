@@ -144,6 +144,7 @@ jobs:
             EOF
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             sed -i "s|:develop|:${{ github.ref_name }}|g" docker-compose.yaml
+            docker image prune -f
             docker compose -f docker-compose.yaml pull
             docker compose -f docker-compose.yaml up -d
-            docker image prune -f
+            
