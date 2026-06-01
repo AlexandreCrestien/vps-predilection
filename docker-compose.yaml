@@ -71,6 +71,8 @@ services:
 
   fastapi:
     image: ghcr.io/alexandrecrestien/fastapi-app:develop
+    volumes:
+      - ./saved_models:/app/saved_models
     networks:
       - proxy
     depends_on:
