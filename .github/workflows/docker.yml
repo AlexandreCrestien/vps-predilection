@@ -133,7 +133,6 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           script: |
             mkdir -p ~/political-prediction/letsencrypt
-            mkdir -p ~/political-prediction/saved_models
             cd ~/political-prediction
             cat > .env << 'EOF'
             POSTGRES_USER=${{ secrets.POSTGRES_USER }}

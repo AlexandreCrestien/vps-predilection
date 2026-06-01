@@ -90,6 +90,8 @@ services:
 
   django:
     image: ghcr.io/alexandrecrestien/django-app:develop
+    volumes:
+      - django_data:/app/
     networks:
       - proxy
     depends_on:
@@ -113,3 +115,5 @@ networks:
 
 volumes:
   postgres_data:
+  django_data:
+  saved_models:
