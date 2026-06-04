@@ -26,17 +26,17 @@ services:
       - "--api.insecure=false"
       - "--log.level=INFO"
       - "--accesslog=true"
-      - "--certificatesresolvers.le.acme.email=alexandre.crestien@gmail.com"
+      - "--certificatesresolvers.le.acme.email=${ACME_EMAIL}"
       - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
       - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=Host(`dashboard.predilection.duckdns.org`)"
+      - "traefik.http.routers.dashboard.rule=Host(`dashboard.${DOMAIN}`)"
       - "traefik.http.routers.dashboard.entrypoints=websecure"
       - "traefik.http.routers.dashboard.service=api@internal"
       - "traefik.http.routers.dashboard.tls=true"
       - "traefik.http.routers.dashboard.tls.certresolver=le"
-      - "traefik.http.middlewares.dashboard-auth.basicauth.users=admin:$$apr1$$vxixy1MF$$lsepsdns2ijhZdgOEpwvK1"
+      - "traefik.http.middlewares.dashboard-auth.basicauth.users=${DASHBOARD_AUTH}"
       - "traefik.http.routers.dashboard.middlewares=dashboard-auth@docker"
 
   postgres:
@@ -82,7 +82,7 @@ services:
       DATABASE_URL: ${DATABASE_URL}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.fastapi.rule=Host(`api.predilection.duckdns.org`)"
+      - "traefik.http.routers.fastapi.rule=Host(`api.${DOMAIN}`)"
       - "traefik.http.routers.fastapi.entrypoints=websecure"
       - "traefik.http.routers.fastapi.tls=true"
       - "traefik.http.routers.fastapi.tls.certresolver=le"
@@ -103,7 +103,7 @@ services:
       BASE_URL: https://geo.api.gouv.fr
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.django.rule=Host(`predilection.duckdns.org`)"
+      - "traefik.http.routers.django.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.django.entrypoints=websecure"
       - "traefik.http.routers.django.tls=true"
       - "traefik.http.routers.django.tls.certresolver=le"

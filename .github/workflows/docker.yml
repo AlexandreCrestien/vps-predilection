@@ -122,7 +122,6 @@ jobs:
           source: "docker-compose.yaml"
           target: "~/political-prediction/"
 
-      # 12. Deploy on VPS
       - name: Deploy on VPS
         if: github.event_name == 'release'
         uses: appleboy/ssh-action@v1.0.3
@@ -141,10 +140,12 @@ jobs:
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             DEBUG=${{ secrets.DEBUG }}
             SECRET_KEY=${{ secrets.SECRET_KEY }}
+            ACME_EMAIL=${{ secrets.ACME_EMAIL }}
+            DASHBOARD_AUTH=${{ secrets.DASHBOARD_AUTH }}
+            DOMAIN=${{ secrets.DOMAIN }}
             EOF
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             sed -i "s|:develop|:${{ github.ref_name }}|g" docker-compose.yaml
             docker image prune -f
             docker compose -f docker-compose.yaml pull
             docker compose -f docker-compose.yaml up -d
-            

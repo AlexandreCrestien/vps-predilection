@@ -1,210 +1,186 @@
-![Démo](django_political_app/static/images/demo.gif)
+# Predilection — README
 
-# Political Prediction
+## Contexte et projet
 
-## 📋 Introduction
+Application Data/IA de prédiction des résultats électoraux par commune, développée lors d'un projet précédent. Elle est composée de 3 services : une API FastAPI, une application web Django et une base de données PostgreSQL. Un service d'ingestion charge les données CSV au démarrage.
 
-Predil'ection est une **Application web** conçue pour prédire les résultats des élections d'une commune ainsi que de consulter les données associées. Développée dans le cadre d'une formation en Data IA, cette Application possède des validations robustes et une couverture de tests.
-
-**Objectif :** Fournir une interface intuitive pour les utilisateurs afin de consulter les prédictions électorales basées sur des données historiques et des modèles de machine learning.
+L'objectif de ce projet est de déployer cette application sur un VPS OVH de manière sécurisée, reproductible et traçable.
 
 ---
 
-## 🎯 Description
+## Prérequis
 
-**Notre application** est une application web permettant de :
-
-- ✅ Prédire les résultats électoraux d'une commune
-- ✅ Afficher les données historiques des élections
-- ✅ Fournir une interface utilisateur intuitive et responsive grâce à une carte interactive
-- ✅ Authentifier les utilisateurs de manière sécurisée
-
-### Fonctionnalités principales
-
-|          Fonctionnalité          |                      Description                      |
-| :--------------------------------: | :---------------------------------------------------: |
-|     **Authentification**     |            Connexion sécurisée avec Django            |
-| **Affichage des données**    | Affichage des données historiques des élections       |
-|  **Gestion des utilisateurs**  |           CRUD complet pour les Utilisateurs           |
-|   **Modèle de prédiction**   |   Modèle de classification pour les prédictions   |
-|  **Validation de données**  |   DTOs et validation robuste de toutes les entrées   |
-|   **Gestion des erreurs**   |   Codes d'erreur explicites et messages détaillés   |
+- Un VPS OVH sous Ubuntu
+- Un compte GitHub avec accès au dépôt
+- Docker et Docker Compose installés sur le VPS
+- Un nom de domaine (DuckDNS suffit)
+- Un token GitHub avec le scope `read:packages` pour puller les images
 
 ---
 
-## 🏗️ Architecture
-
-### Sources de données
-- **Données électorales** : Récupérées depuis des sources officielles telles que data.gouv.fr.
-- **Données démographiques** : Intégration de données démographiques (INSEE) pour améliorer les prédictions.
-- **Données géographiques** : Utilisation de données géographiques pour la visualisation sur la carte interactive.
-
-### Stack technique
-
-- **Frontend :** Django avec HTML, CSS (Bulma)
-- **Backend :** FastAPI
-- **Base de données :** SQLAlchemy ORM + PostgreSQL
-- **Carte interactive** Framework CSS Folium pour la visualisation des données géographiques
-- **Authentification :** Django Auth
-- **Tests :** Pytest avec couverture de code
-- **Documentation :** Swagger UI et ReDoc et commentaires détaillés dans le code
-
-### Structure du projet
+## Architecture retenue
 
 ```
-.
-├── api
-│   └── app
-│       ├── core
-│       ├── db
-│       ├── endpoints
-│       ├── model
-│       ├── repositories
-│       ├── routers
-│       ├── schemas
-│       ├── services
-│       ├── tests
-│       ├── utils
-│       └── main.py
-├── data
-├── django_political_app
-│   ├── core
-│   ├── detail
-│   ├── django_political_app
-│   ├── map
-│   ├── predictions
-│   ├── static
-│   ├── templates
-│   ├── users
-│   └── manage.py
-├── docs
-│   ├── Présentation
-├── eda
-├── maquette
-├── ml
-├── requirements.txt
-└── README.md
+GitHub (code + registry ghcr.io)
+        │
+        │  push develop → CI/CD (lint, tests, build, push images)
+        │  release vX.X → CI/CD + déploiement automatique sur VPS
+        ▼
+VPS OVH (Ubuntu)
+        │
+        ├── Traefik (reverse proxy, HTTPS Let's Encrypt)
+        │       ├── predilection.duckdns.org       → Django (8000)
+        │       ├── api.predilection.duckdns.org   → FastAPI (8080)
+        │       └── dashboard.predilection.duckdns.org → Dashboard Traefik
+        │
+        ├── Django     (interface web)
+        ├── FastAPI    (API + modèle ML)
+        ├── PostgreSQL (base de données, non exposé publiquement)
+        └── Ingest     (one-shot, charge le CSV au démarrage)
 ```
-
-## 🔧 Installation
-
-### Prérequis
-
-- **Python** 3.9 ou supérieur
-- **PostgreSQL** 12 ou supérieur
-- **pip** pour la gestion des dépendances
-
-### Étapes d'installation
-
-1. **Cloner le repository**
-
-   ```bash
-   git clone <url-du-repository>
-   cd political-prediction
-   ```
-2. **Créer un environnement virtuel**
-
-   ```bash
-   python -m venv venv
-   source venv/bin/activate    # Sur macOS/Linux
-   # ou
-   venv\Scripts\activate        # Sur Windows
-   ```
-3. **Installer les dépendances**
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. **Configurer les variables d'environnement**
-
-   Créez un fichier `.env` dans le dossier api et dans le dossier django_political_app avec les variables suivantes :
-   
-   django_political_app/.env :
-   ```env
-   SECRET_KEY='Ici la secret key de Django'
-    DEBUG=false
-    DATABASE_NAME=db.sqlite3
-    BASE_URL_LOCAL="l'url de fast api"
-    BASE_URL="https://geo.api.gouv.fr"
-   ```
-5. **Initialiser la base de données**
-
-   ```bash
-   cd data 
-   ```
-   exécutez df_election_2012 df_election_2017 full_df_final full_stat pour créer les tables et insérer les données dans la base de données.
-
-   ```bash
-   sudo -u postgres psql -c "CREATE DATABASE predilection;"
-   sudo -u postgres psql -d predilection -f data/insert_communes.sql
-   ```
-6. **Lancer l'application**
-   fastapi :
-   ```bash
-   cd api
-   uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
-   ```
-    django :
-    ```bash
-    cd django_political_app
-    python manage.py collectstaticFévrier
-    python manage.py runserver
-    ```
-
-
-L'Application sera accessible sur : `http://127.0.0.1:8000/home/`
 
 ---
 
-## 📖 Documentation et tests
+## Services et ports
 
-### Accéder à la documentation interactive
+| Service    | Port interne | URL publique                                       |
+|------------|-------------|----------------------------------------------------|
+| Django     | 8000        | https://predilection.duckdns.org                   |
+| FastAPI    | 8080        | https://api.predilection.duckdns.org               |
+| Traefik    | 80 / 443    | https://dashboard.predilection.duckdns.org         |
+| PostgreSQL | 5432        | non exposé publiquement                            |
 
-FastAPI génère automatiquement une documentation interactive :
+---
 
-- **Swagger UI** : [http://localhost:8000/docs](http://localhost:8000/docs)
-- **ReDoc** : [http://localhost:8000/redoc](http://localhost:8000/redoc)
+## Procédure d'installation sur un VPS neuf
 
-### Exécuter les tests
+Voir le fichier [`docs/DEPLOY.md`](docs/DEPLOY.md) pour la procédure complète étape par étape (sécurisation SSH, pare-feu, Docker, Traefik, CI/CD).
+
+---
+
+## Procédure de déploiement initial
+
+Le déploiement initial se fait **une seule fois manuellement** avant que la CI/CD prenne le relais.
+
+**Depuis la machine locale**, copier le `docker-compose.yaml` sur le VPS :
 
 ```bash
-# Lancer tous les tests
-pytest --cov=django_political_app --cov=api/app --cov-report=term-missing --ignore=api/test_db.py -v
+scp -i ~/.ssh/ovh_predilection -P 49200 docker-compose.yaml ubuntu@<IP>:~/political-prediction/
 ```
 
-### Monitoring du modèle de prédiction
-- **MLflow** : Utilisé pour suivre les expériences de machine learning, les métriques et les modèles. Accédez à l'interface MLflow pour visualiser les résultats des entraînements et les comparaisons entre les modèles.
-
-Exécutez MLflow avec la commande suivante :
+**Sur le VPS**, préparer l'environnement :
 
 ```bash
-pip install mlflow
+mkdir -p ~/political-prediction/letsencrypt
+cd ~/political-prediction
 
-cd ml
-python monitoring.py
-mlflow ui
+# Créer le fichier .env (voir la liste des variables dans docs/DEPLOY.md)
+nano .env
+
+# Se connecter à ghcr.io
+echo "TON_GITHUB_TOKEN" | docker login ghcr.io -u TON_USERNAME --password-stdin
+
+# Lancer les services
+docker compose pull
+docker compose up -d
+
+# Vérifier
+docker compose ps
 ```
 
-À noter que le monitoring du modèle est basé sur une version antérieure du projet, et que les données utilisées pour le monitoring ne sont pas à jour. Par conséquent, les résultats affichés dans MLflow peuvent ne pas refléter les performances actuelles du modèle de prédiction.
----
-
-## 👥 Auteurs
-
-Ce projet a été développé par une équipe de trois développeurs :
-
-- **Flora Trecul** - [Github](https://github.com/Flora-Trecul)
-- **Ethan Puype** - [Github](https://github.com/NICHIKU)
-- **Souhaïb Massrour** - [Github](https://github.com/GutsSama)
-- **Alexandre Crestien** - [Github](https://github.com/AlexandreCrestien)
-
-**Contexte :** Projet de formation Développeur Data IA - Simplon
+Configurer ensuite les secrets GitHub Actions (voir [`docs/DEPLOY.md`](docs/DEPLOY.md)) pour activer le déploiement automatique.
 
 ---
 
-## 📝 Licence
+## Procédure de publication d'une nouvelle release
 
-Ce projet est fourni à des fins éducatives.
+1. Faire les modifications sur la branche `develop`
+2. Pusher sur `develop` → le workflow build et publie les images taguées `develop`
+3. Créer une release GitHub (`vX.X`) → déploiement automatique sur le VPS avec le nouveau tag
+
+```
+GitHub → Releases → Create a new release → Tag: vX.X → Publish release
+```
 
 ---
 
-**Dernière mise à jour :** 10 avril 2026
+## Consulter les logs
+
+**Logs des services Docker**
+
+```bash
+# Logs d'un service spécifique
+docker compose logs django
+docker compose logs fastapi
+docker compose logs traefik
+docker compose logs postgres
+
+# Logs en temps réel
+docker compose logs -f django
+docker compose logs -f fastapi
+
+# Dernières N lignes
+docker compose logs --tail=100 django
+
+# Filtrer par niveau
+docker compose logs fastapi | grep -i "error"
+docker compose logs django | grep -i "warning"
+docker compose logs traefik | grep -i "error"
+
+# Ingest (one-shot, vérifier qu'il a bien tourné)
+docker compose logs ingest
+```
+
+**Logs via Docker directement**
+
+```bash
+docker logs traefik
+docker logs traefik -f --tail=50
+```
+
+**Logs système**
+
+```bash
+# Tentatives de connexion SSH
+sudo journalctl -u ssh
+
+# Activité Fail2ban (bans, tentatives bloquées)
+sudo journalctl -u fail2ban
+```
+
+**Statut et ressources**
+
+```bash
+# Statut des conteneurs
+docker compose ps
+
+# Consommation CPU / RAM en temps réel
+docker stats
+
+# Inspecter un conteneur
+docker inspect traefik
+```
+
+---
+
+## Mesures de sécurité
+
+- Connexion SSH par clé uniquement (désactivation du mot de passe via `sshd_config` et `50-cloud-init.conf`)
+- Port SSH non standard (49200)
+- Pare-feu iptables : seuls les ports 80, 443 et 49200 sont ouverts
+- Fail2ban : blocage après 3 tentatives SSH échouées en 5 minutes
+- Utilisateur de déploiement dédié avec droits Docker uniquement
+- Services applicatifs non exposés directement (FastAPI, Django, PostgreSQL accessibles uniquement via Traefik ou le réseau Docker interne)
+- Dashboard Traefik protégé par authentification Basic Auth
+- Secrets gérés via GitHub Actions Secrets (jamais dans le dépôt)
+- HTTPS avec certificat Let's Encrypt via Traefik
+- `.env` listé dans `.gitignore`
+
+---
+
+## Limites de la solution
+
+- VPS pédagogique : pas de haute disponibilité, pas de sauvegarde automatique de la base de données
+- Un seul VPS : pas de redondance en cas de panne matérielle
+- DuckDNS est un service gratuit non garanti en production
+- Les images Docker sont publiques sur ghcr.io

@@ -4,7 +4,7 @@
 
 **Connexion au VPS via un mot de passe**
 ```bash
-ssh ubuntu@164.132.43.251
+ssh ubuntu@<IP>
 ```
 
 **Création d'un utilisateur de déploiement**
@@ -40,8 +40,8 @@ sudo chmod 600 /home/deploy/.ssh/authorized_keys
 
 Nouvelles commandes de connexion :
 ```bash
-ssh -i ~/.ssh/ovh_predilection ubuntu@164.132.43.251
-ssh -i ~/.ssh/ovh_predilection deploy@164.132.43.251
+ssh -i ~/.ssh/ovh_predilection ubuntu@<IP>
+ssh -i ~/.ssh/ovh_predilection deploy@<IP>
 ```
 
 ---
@@ -57,8 +57,51 @@ sudo systemctl restart ssh.socket
 
 Nouvelles commandes de connexion :
 ```bash
-ssh ubuntu@164.132.43.251 -p 49200
-ssh deploy@164.132.43.251 -p 49200
+ssh ubuntu@<IP> -p 49200
+ssh deploy@<IP> -p 49200
+```
+
+---
+
+**Désactiver l'authentification par mot de passe SSH**
+
+> **Prérequis** : avoir une clé SSH fonctionnelle configurée sur le VPS avant de commencer.
+
+Sur Ubuntu (notamment les images cloud OVH), un fichier peut **écraser** la config principale. Vérifier tous les fichiers concernés :
+
+```bash
+sudo grep -r "PasswordAuthentication" /etc/ssh/
+```
+
+Modifier **tous** les fichiers qui contiennent `PasswordAuthentication yes` :
+
+```bash
+sudo nano /etc/ssh/sshd_config
+sudo nano /etc/ssh/sshd_config.d/50-cloud-init.conf  # présent sur les VPS OVH
+```
+
+Mettre à `no` dans chaque fichier :
+
+```
+PasswordAuthentication no
+PermitEmptyPasswords no
+```
+
+Redémarrer SSH :
+
+```bash
+sudo systemctl restart ssh
+```
+
+Vérifier depuis un autre PC dans un **nouveau terminal** (garder la session actuelle ouverte) :
+
+```bash
+# Doit échouer
+ssh -o PreferredAuthentications=password ubuntu@<IP> -p 49200
+# Résultat attendu : Permission denied (publickey).
+
+# Doit fonctionner
+ssh -i ~/.ssh/ovh_predilection ubuntu@<IP> -p 49200
 ```
 
 ---
@@ -71,10 +114,10 @@ sudo iptables -A INPUT -i lo -j ACCEPT
 sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
 sudo iptables -A INPUT -p tcp --dport 49200 -j ACCEPT
 sudo iptables -A INPUT -p tcp --dport 443 -j ACCEPT
-sudo iptables -L  # vérification
-sudo iptables -A INPUT -j DROP
 sudo iptables -I INPUT 1 -m state --state ESTABLISHED,RELATED -j ACCEPT
-sudo -s iptables-save -c
+sudo iptables -A INPUT -j DROP
+sudo iptables -L  # vérification
+sudo iptables-save > /etc/iptables/rules.v4
 ```
 
 ---
@@ -296,7 +339,7 @@ docker compose up -d
 **Configurer DuckDNS**
 - Aller sur https://www.duckdns.org/ et se connecter avec GitHub
 - Choisir un nom de domaine (ex : `predilection`) puis faire `add domain`
-- Remplacer le `current ip` par l'IP du VPS (ex : `164.132.43.251`)
+- Remplacer le `current ip` par l'IP du VPS
 
 Dans `settings.py` :
 ```python
@@ -396,8 +439,11 @@ POSTGRES_DB=predilection
 DATABASE_URL=postgresql://postgres:postgres@postgres:5432/predilection
 DEBUG=True
 SECRET_KEY=ta_secret_key
+ACME_EMAIL=ton_email
+DASHBOARD_AUTH=hash_genere_par_htpasswd
+DOMAIN=predilection.duckdns.org
 VPS_HOST=IP du VPS
-VPS_USER=panda (ou deploy)
+VPS_USER=deploy
 VPS_PORT=49200
 VPS_SSH_KEY=clé privée SSH (voir ci-dessous)
 ```
@@ -449,12 +495,15 @@ on:
             DATABASE_URL=${{ secrets.DATABASE_URL }}
             DEBUG=${{ secrets.DEBUG }}
             SECRET_KEY=${{ secrets.SECRET_KEY }}
+            ACME_EMAIL=${{ secrets.ACME_EMAIL }}
+            DASHBOARD_AUTH=${{ secrets.DASHBOARD_AUTH }}
+            DOMAIN=${{ secrets.DOMAIN }}
             EOF
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             sed -i "s|:develop|:${{ github.ref_name }}|g" docker-compose.yaml
-            docker compose pull
-            docker compose up -d
             docker image prune -f
+            docker compose -f docker-compose.yaml pull
+            docker compose -f docker-compose.yaml up -d
 ```
 
 **Publier une release** :
