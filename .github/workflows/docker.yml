@@ -22,21 +22,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Setup Python (for lint)
+      # 2. Set lowercase owner
+      - name: Set lowercase owner
+        run: echo "OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      # 3. Setup Python (for lint)
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      # 3. Install lint
+      # 4. Install lint
       - name: Install flake8
         run: pip install flake8
 
-      # 4. Run lint
+      # 5. Run lint
       - name: Run lint
         run: flake8 . || true
 
-      # 5. Install dependencies
+      # 6. Install dependencies
       - name: Install dependencies
         run: |
           pip install --upgrade pip
@@ -49,11 +53,11 @@ jobs:
           echo "DJANGO_SETTINGS_MODULE=django_political_app.settings" >> $GITHUB_ENV
           echo "SECRET_KEY=test-secret-key" >> $GITHUB_ENV
 
-      # 6. Tests
+      # 7. Tests
       - name: Run tests
         run: pytest
 
-      # 7. Login to GitHub Container Registry
+      # 8. Login to GitHub Container Registry
       - name: Log in to the Container registry
         uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
         with:
@@ -61,12 +65,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 8. Build + push FASTAPI
+      # 9. Build + push FASTAPI
       - name: Extract metadata for FastAPI
         id: meta-fastapi
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          images: ${{ env.REGISTRY }}/alexandrecrestien/fastapi-app
+          images: ${{ env.REGISTRY }}/${{ env.OWNER }}/fastapi-app
 
       - name: Build and push FastAPI
         id: push-fastapi
@@ -77,12 +81,12 @@ jobs:
           tags: ${{ steps.meta-fastapi.outputs.tags }}
           labels: ${{ steps.meta-fastapi.outputs.labels }}
 
-      # 9. Build + push DJANGO
+      # 10. Build + push DJANGO
       - name: Extract metadata for Django
         id: meta-django
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          images: ${{ env.REGISTRY }}/alexandrecrestien/django-app
+          images: ${{ env.REGISTRY }}/${{ env.OWNER }}/django-app
 
       - name: Build and push Django
         id: push-django
@@ -93,12 +97,12 @@ jobs:
           tags: ${{ steps.meta-django.outputs.tags }}
           labels: ${{ steps.meta-django.outputs.labels }}
 
-      # 10. Build + push INGEST
+      # 11. Build + push INGEST
       - name: Extract metadata for Ingest
         id: meta-ingest
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          images: ${{ env.REGISTRY }}/alexandrecrestien/ingest-app
+          images: ${{ env.REGISTRY }}/${{ env.OWNER }}/ingest-app
 
       - name: Build and push Ingest
         id: push-ingest
@@ -110,7 +114,7 @@ jobs:
           tags: ${{ steps.meta-ingest.outputs.tags }}
           labels: ${{ steps.meta-ingest.outputs.labels }}
 
-      # 11. Copy docker-compose to VPS
+      # 12. Copy docker-compose to VPS
       - name: Copy docker-compose to VPS
         if: github.event_name == 'release'
         uses: appleboy/scp-action@v0.1.7
@@ -122,6 +126,7 @@ jobs:
           source: "docker-compose.yaml"
           target: "~/political-prediction/"
 
+      # 13. Deploy on VPS
       - name: Deploy on VPS
         if: github.event_name == 'release'
         uses: appleboy/ssh-action@v1.0.3
