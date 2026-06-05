@@ -42,7 +42,7 @@ CSRF_TRUSTED_ORIGINS = ['https://predilection.duckdns.org']
 
 ---
 
-### 4. `docker compose pull` refusé sur le VPS
+### 3. `docker compose pull` refusé sur le VPS
 
 **Problème** : `permission denied while trying to connect to the Docker API`.  
 **Diagnostic** : L'utilisateur `ubuntu` n'était pas dans le groupe `docker`.  
@@ -55,7 +55,7 @@ sudo reboot
 
 ---
 
-### 5. Images non mises à jour sur le VPS
+### 4. Images non mises à jour sur le VPS
 
 **Problème** : Après un push, le VPS continuait à utiliser l'ancienne image.  
 **Diagnostic** : Le tag `v1.0` était fixe — Docker ne sait pas qu'une image avec le même tag a changé.  
@@ -63,7 +63,7 @@ sudo reboot
 
 ---
 
-### 7. Authentification SSH par mot de passe toujours active
+### 5. Authentification SSH par mot de passe toujours active
 
 **Problème** : Malgré `PasswordAuthentication no` dans `sshd_config`, la connexion par mot de passe était encore acceptée.  
 **Diagnostic** : Un fichier `/etc/ssh/sshd_config.d/50-cloud-init.conf` propre aux images cloud OVH contenait `PasswordAuthentication yes` et écrasait la config principale.  
@@ -75,6 +75,20 @@ sudo nano /etc/ssh/sshd_config.d/50-cloud-init.conf
 sudo systemctl restart ssh
 ```
 
+---
+
+### 6. `settings.py` incorrect persistant malgré les redéploiements
+
+**Problème** : Django affichait une erreur `DisallowedHost` avec `predi_lection-app.duckdns.org` (underscore) malgré plusieurs releases censées corriger le domaine en `predi-lection-app.duckdns.org` (tiret).  
+**Diagnostic** : Le volume Docker `django_data` monté sur `/app/` persistait entre les redéploiements. L'ancien `settings.py` avec l'underscore était conservé dans le volume et écrasait celui de la nouvelle image au démarrage. `docker compose up -d` ne recrée pas les volumes existants.  
+**Solution** : Suppression complète des volumes et des images pour repartir d'un état propre.
+
+```bash
+docker compose -f docker-compose.yaml down -v
+docker system prune -af
+docker compose -f docker-compose.yaml pull
+docker compose -f docker-compose.yaml up -d
+```
 ---
 
 ## Améliorations envisagées
