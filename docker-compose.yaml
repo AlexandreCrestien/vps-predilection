@@ -87,7 +87,6 @@ services:
       - "traefik.http.routers.fastapi.tls=true"
       - "traefik.http.routers.fastapi.tls.certresolver=le"
       - "traefik.http.services.fastapi.loadbalancer.server.port=8080"
-      - "traefik.http.middlewares.dashboard-auth.basicauth.users=${DASHBOARD_AUTH}"
       - "traefik.http.routers.fastapi.middlewares=dashboard-auth@docker"
 
   django:
